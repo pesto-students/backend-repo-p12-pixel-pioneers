@@ -12,17 +12,9 @@ exports.create = (req, res) => {
     // Create a User
     const quiz = new Quiz({
       quiz_id: req.body.quiz_id,
-    //   question:{
-    //       metadata :{
-    //           id:String,
-    //           name:String,
-    //           questn_text:String,
-    //           options:[{A:String,B:String,C:String,D:String}],
-    //           correct_answer:String,
-    //           type:String
-    //       }
-    //   },
-      url: req.body.url  
+      question:req.body.question,
+      title:req.body.title,
+      validity: req.body.validity  
     });
   // Save User in the database
   quiz
