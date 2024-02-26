@@ -21,6 +21,7 @@
 
 const mongoose = require('mongoose');
 
+
 const quizSchema = new mongoose.Schema({
   id: {
     type: String,
@@ -60,7 +61,8 @@ const quizSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  questions: [{
+  questions: {
+    type: [{
     question_title: {
       type: String,
       required: true,
@@ -84,11 +86,18 @@ const quizSchema = new mongoose.Schema({
       type: String,
       enum: ['mCQ', 'poll'],
       required: true
-    }
-  }]
+    }    
+  }],
+  validate: [validateQuestionsArray, 'Maximum number of questions exceeded']
+}
 });
 
+function validateQuestionsArray(questions) {
+  if (questions.length > 25) {
+    return false;
+  }
+  return true;
+}
 const Quiz = mongoose.model('Quiz', quizSchema);
-
 module.exports = Quiz;
   
