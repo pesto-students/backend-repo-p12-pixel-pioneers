@@ -52,8 +52,26 @@ module.exports = app => {
   });
   
   router.put("/:id", async (req, res) => {
+    // try {
+    //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
+    //   if (!updatedQuiz) throw new Error("No quiz found.");
+    //   res.json(updatedQuiz);
+    // } catch (err) {
+    //   if (err.name === "CastError") {
+    //     res.status(400).json({ msg: "Invalid ID." });
+    //   } else if (err.message === "No quiz found.") {
+    //     res.status(404).json({ msg: "Quiz not found." });
+    //   } else {
+    //     console.log(err);
+    //     res.status(500).json({ msg: "Server Error" });
+    //   }
+    // }
     try {
-      const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
+      const updatedQuiz = await Quiz.findOneAndUpdate(
+        { id: req.params.id },
+        req.body,
+        { new: true }
+      ).populate("createdBy").populate("lastUpdatedBy");
       if (!updatedQuiz) throw new Error("No quiz found.");
       res.json(updatedQuiz);
     } catch (err) {
@@ -69,8 +87,26 @@ module.exports = app => {
   });
   
   router.patch("/:id", async (req, res) => {
+    // try {
+    //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate("createdBy").populate("lastUpdatedBy");
+    //   if (!updatedQuiz) throw new Error("No quiz found.");
+    //   res.json(updatedQuiz);
+    // } catch (err) {
+    //   if (err.name === "CastError") {
+    //     res.status(400).json({ msg: "Invalid ID." });
+    //   } else if (err.message === "No quiz found.") {
+    //     res.status(404).json({ msg: "Quiz not found." });
+    //   } else {
+    //     console.log(err);
+    //     res.status(500).json({ msg: "Server Error" });
+    //   }
+    // }
     try {
-      const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate("createdBy").populate("lastUpdatedBy");
+      const updatedQuiz = await Quiz.findOneAndUpdate(
+        { id: req.params.id },
+        { $set: req.body },
+        { new: true }
+      ).populate("createdBy").populate("lastUpdatedBy");
       if (!updatedQuiz) throw new Error("No quiz found.");
       res.json(updatedQuiz);
     } catch (err) {
@@ -86,14 +122,26 @@ module.exports = app => {
   });
   
   router.get("/:id", async (req, res) => {
+    // try {
+    //   const quiz = await Quiz.findById(req.params.id).populate("createdBy").populate("lastUpdatedBy");
+    //   if (!quiz) throw new Error("No quiz found.");
+    //   res.json(quiz);
+    // } catch (err) {
+    //   if (err.name === "CastError") {
+    //     res.status(400).json({ msg: "Invalid ID." });
+    //   } else if (err.message === "No quiz found.") {
+    //     res.status(404).json({ msg: "Quiz not found." });
+    //   } else {
+    //     console.log(err);
+    //     res.status(500).json({ msg: "Server Error" });
+    //   }
+    // }
     try {
-      const quiz = await Quiz.findById(req.params.id).populate("createdBy").populate("lastUpdatedBy");
+      const quiz = await Quiz.findOne({ id: req.params.id }).populate("createdBy").populate("lastUpdatedBy");
       if (!quiz) throw new Error("No quiz found.");
       res.json(quiz);
     } catch (err) {
-      if (err.name === "CastError") {
-        res.status(400).json({ msg: "Invalid ID." });
-      } else if (err.message === "No quiz found.") {
+      if (err.message === "No quiz found.") {
         res.status(404).json({ msg: "Quiz not found." });
       } else {
         console.log(err);
