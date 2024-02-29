@@ -28,8 +28,24 @@ module.exports = app => {
   const express = require('express');
   const router = express.Router();
   const Quiz = require('../models/quiz.model');
+  const User = require('../models/user.model');
   
-  router.post('/', async (req, res) => {
+  
+  const validateUserExists = async (req, res, next) => {
+    const { createdBy } = req.body;
+  
+    try {
+      const user = await User.findById(createdBy);
+      if (!user) {
+        return res.status(400).json({ message: 'User not found' });
+      }
+      next();
+    } catch (error) {
+      res.status(500).json({ message: 'Error checking user' });
+    }
+  };
+  
+  router.post('/', validateUserExists,async (req, res) => {
     try {
       const quiz = new Quiz(req.body);
       await quiz.save();
@@ -149,6 +165,7 @@ module.exports = app => {
       }
     }
   });
+  
   module.exports = router;
   app.use("/api/quizs", router);
   }

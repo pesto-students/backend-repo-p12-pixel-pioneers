@@ -46,16 +46,16 @@ const quizSchema = new mongoose.Schema({
     default: Date.now
   },
   createdBy: {
-    // type: mongoose.Schema.Types.ObjectId,
-    // ref: 'User',
-    // required: true
-    String
+     type: mongoose.Schema.Types.ObjectId,
+     ref: 'Users',
+    required: true
+    //String
   },
   lastUpdatedBy: {
-    // type: mongoose.Schema.Types.ObjectId,
-    // ref: 'User',
-    // required: true
-    String
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users',
+     required: true
+    //String
   },
   persistQuestions: {
     type: Boolean,
