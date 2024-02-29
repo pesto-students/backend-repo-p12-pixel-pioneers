@@ -67,7 +67,7 @@ module.exports = app => {
     }
   });
   
-  router.put("/:id", async (req, res) => {
+  router.put("/:id",validateUserExists, async (req, res) => {
     // try {
     //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
     //   if (!updatedQuiz) throw new Error("No quiz found.");
@@ -102,7 +102,7 @@ module.exports = app => {
     }
   });
   
-  router.patch("/:id", async (req, res) => {
+  router.patch("/:id",validateUserExists, async (req, res) => {
     // try {
     //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate("createdBy").populate("lastUpdatedBy");
     //   if (!updatedQuiz) throw new Error("No quiz found.");
