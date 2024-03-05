@@ -47,8 +47,9 @@ module.exports = app => {
   
   router.post('/', validateUserExists,async (req, res) => {
     try {
-      const quiz = new Quiz(req.body);
-      await quiz.save();
+      
+      const quiz = new Quiz(req.body);    
+      await quiz.save();    
       res.status(201).send(quiz);
     } catch (error) {
       res.status(400).send(error);
@@ -59,7 +60,7 @@ module.exports = app => {
   router.get("/", async (req, res) => {
     try {
       const query = {}; // Add any filtering criteria here if needed
-      const result = await Quiz.find(query).populate("createdBy").populate("lastUpdatedBy");
+      const result = await Quiz.find(query);
       res.json(result);
     } catch (err) {
       console.log(err);
@@ -87,7 +88,7 @@ module.exports = app => {
         { id: req.params.id },
         req.body,
         { new: true }
-      ).populate("createdBy").populate("lastUpdatedBy");
+      );
       if (!updatedQuiz) throw new Error("No quiz found.");
       res.json(updatedQuiz);
     } catch (err) {
@@ -153,7 +154,7 @@ module.exports = app => {
     //   }
     // }
     try {
-      const quiz = await Quiz.findOne({ id: req.params.id }).populate("createdBy").populate("lastUpdatedBy");
+      const quiz = await Quiz.findOne({ id: req.params.id });
       if (!quiz) throw new Error("No quiz found.");
       res.json(quiz);
     } catch (err) {
