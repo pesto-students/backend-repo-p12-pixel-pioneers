@@ -1,103 +1,37 @@
-// module.exports = mongoose => {
-//     var schema = mongoose.Schema(
-//       {
-//         quiz_id: Number,
-//         question:[{type:mongoose.Schema.Types.ObjectId,ref:'Question'}],
-//         title:String,
-//         validity:Date            
-//       },
-//       { timestamps: true }
-//     );
-  
-//     schema.method("toJSON", function() {
-//       const { __v, _id, ...object } = this.toObject();
-//       object.id = _id;
-//       return object;
-//     });
-  
-//     const Quiz = mongoose.model("Quizes", schema);
-//     return Quiz;
-//   };
-
 const mongoose = require('mongoose');
 
-
-const quizSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  title: {
-    type: String,
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['Active', 'Inactive'],
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  lastUpdatedAt: {
-    type: Date,
-    default: Date.now
-  },
-  createdBy: {
-     type: mongoose.Schema.Types.ObjectId,
-     ref: 'Users',
-    required: true
-    //String
-  },
-  lastUpdatedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users',
-     required: true
-    //String
-  },
-  persistQuestions: {
-    type: Boolean,
-    default: false
-  },
-  questions: {
-    type: [{
-    question_title: {
-      type: String,
-      required: true,
-      minlength: 2,
-      maxlength: 100
-    },
-    options: {
-      type: [String],
-      required: true,
-      validate: {
-        validator: function(v) {
-          return v.length >= 2 && v.length <= 4;
-        },
-        message: 'Options should have at least 2 and at most 4 values'
-      }
-    },
-    correct_answer: {
-      type: String      
-    },
-    question_type: {
-      type: String,
-      enum: ['mCQ', 'poll'],
-      required: true
-    }    
-  }],
-  validate: [validateQuestionsArray, 'Maximum number of questions exceeded']
-}
+const UserAnsSchema = new mongoose.Schema({
+  name: { type: String, required: false },
+  age: { type: Number, required: false },
+  gender: { type: String, required: false },
+  email: { type: String, required: false },
+  city: { type: String, required: false }
 });
 
-function validateQuestionsArray(questions) {
-  if (questions.length > 25) {
-    return false;
-  }
-  return true;
-}
+const quizSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  title: { type: String, required: true },
+  status: { type: String, enum: ['Active', 'Inactive'], required: true },
+  createdAt: { type: Date, default: Date.now },
+  lastUpdatedAt: { type: Date, default: Date.now },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  persistQuestions: { type: Boolean, default: false },
+  validity: { type: Date },
+  questions : [{
+    question_title : { type:String, minlength : 2, maxlength : 100 },
+    options : [{ type:String }],
+    correct_answer : { type:String },
+    question_type : { type:String, enum:['mCQ', 'poll'] }
+  }],
+  user_answers : [{
+    user : UserAnsSchema,
+    answers : [{ type:Number }]
+  }]
+});
+
 const Quiz = mongoose.model('Quiz', quizSchema);
+const UserAns = mongoose.model('UserAnswers', UserAnsSchema);
+
+module.exports = UserAns;
 module.exports = Quiz;
-  
