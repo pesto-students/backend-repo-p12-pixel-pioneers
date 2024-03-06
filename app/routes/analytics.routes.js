@@ -135,9 +135,9 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
 // Route to get total answer statistics for a specific quiz
 router.get('/quiz/:quizId/answer-stats', async (req, res) => {
   const quizId = req.params.quizId;
-  const totalCorrectAnswers = 0;
-  const totalWrongAnswers = 0;
-  const totalAnswers = 0;
+  let totalCorrectAnswers = 0;
+  let totalWrongAnswers = 0;
+  let totalAnswers = 0;
 
   try {
     const quizData = await Quiz.findOne({ id: quizId });
