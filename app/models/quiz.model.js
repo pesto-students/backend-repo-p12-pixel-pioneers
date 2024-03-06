@@ -22,7 +22,7 @@ const quizSchema = new mongoose.Schema({
     question_title : { type:String, minlength : 2, maxlength : 100 },
     options : [{ type:String }],
     correct_answer : { type:String },
-    question_type : { type:String, enum:['mCQ', 'poll'] }
+    question_type : { type:String, enum:['MCQ', 'poll'] }
   }],
   user_answers : [{
     user : UserAnsSchema,
