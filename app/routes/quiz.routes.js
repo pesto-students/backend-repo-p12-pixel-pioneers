@@ -144,27 +144,9 @@ module.exports = app => {
     // }
   });
   
-  router.patch("/:id",validateUserExists, async (req, res) => {
-    // try {
-    //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate("createdBy").populate("lastUpdatedBy");
-    //   if (!updatedQuiz) throw new Error("No quiz found.");
-    //   res.json(updatedQuiz);
-    // } catch (err) {
-    //   if (err.name === "CastError") {
-    //     res.status(400).json({ msg: "Invalid ID." });
-    //   } else if (err.message === "No quiz found.") {
-    //     res.status(404).json({ msg: "Quiz not found." });
-    //   } else {
-    //     console.log(err);
-    //     res.status(500).json({ msg: "Server Error" });
-    //   }
-    // }
+  router.patch("/:id", async (req, res) => {
     try {
-      const updatedQuiz = await Quiz.findOneAndUpdate(
-        { id: req.params.id },
-        { $set: req.body },
-        { new: true }
-      ).populate("createdBy").populate("lastUpdatedBy");
+      const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate("createdBy").populate("lastUpdatedBy");
       if (!updatedQuiz) throw new Error("No quiz found.");
       res.json(updatedQuiz);
     } catch (err) {
@@ -177,6 +159,24 @@ module.exports = app => {
         res.status(500).json({ msg: "Server Error" });
       }
     }
+    // try {
+    //   const updatedQuiz = await Quiz.findOneAndUpdate(
+    //     { id: req.params.id },
+    //     { $set: req.body },
+    //     { new: true }
+    //   ).populate("createdBy").populate("lastUpdatedBy");
+    //   if (!updatedQuiz) throw new Error("No quiz found.");
+    //   res.json(updatedQuiz);
+    // } catch (err) {
+    //   if (err.name === "CastError") {
+    //     res.status(400).json({ msg: "Invalid ID." });
+    //   } else if (err.message === "No quiz found.") {
+    //     res.status(404).json({ msg: "Quiz not found." });
+    //   } else {
+    //     console.log(err);
+    //     res.status(500).json({ msg: "Server Error" });
+    //   }
+    // }
   });
   
   router.get("/:id", async (req, res) => {
