@@ -45,7 +45,7 @@ module.exports = app => {
     }
   };
   
-  router.post('/', validateUserExists,async (req, res) => {
+  router.post('/', async (req, res) => {
     try {
       
       const quiz = new Quiz(req.body);    
@@ -72,6 +72,7 @@ module.exports = app => {
         { $match: query },
         {
           $project: {
+             id:1,
              title: 1,
             _id: 1,
             questions: {
