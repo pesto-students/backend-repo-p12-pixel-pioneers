@@ -97,6 +97,19 @@ module.exports = app => {
     }
   });
   
+  router.get("/questions", async (req, res) => {
+    try {
+      const query = {}; // Add any filtering criteria here if needed
+      const result = await Quiz.find(query, {id:1,title: 1, _id: 1,questions: 1 })    
+      res.json(result);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json({ msg: "Server Error" });
+    }
+    
+  });
+  
+  
   router.put("/:id",validateUserExists, async (req, res) => {
     // try {
     //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
