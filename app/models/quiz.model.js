@@ -9,7 +9,7 @@ const UserAnsSchema = new mongoose.Schema({
 });
 
 const quizSchema = new mongoose.Schema({
-  id: { type: String, required: true },
+  //id: { type: String, required: false },
   title: { type: String, required: true },
   status: { type: String, enum: ['Active', 'Inactive'], required: true },
   createdAt: { type: Date, default: Date.now },
