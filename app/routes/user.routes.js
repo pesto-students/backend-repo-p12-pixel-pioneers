@@ -42,6 +42,22 @@ module.exports = app => {
     }
   });
   
+  // router.post('/login', async (req, res) => {
+  //   try {
+  //     const { email, password } = req.body;
+  //     const user = await User.findOne({ email });
+  
+  //     if (!user || !bcrypt.compareSync(password, user.password)) {
+  //       return res.status(401).json({ message: 'Invalid credentials' });
+  //     }
+  
+  //     const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' });
+  //     res.json({ token });
+  //   } catch (error) {
+  //     res.status(500).json({ message: 'Login failed' });
+  //   }
+  // });
+  
   router.post('/login', async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -51,11 +67,33 @@ module.exports = app => {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
   
+      // Update last_login field
+      user.last_login = new Date();
+      await user.save();
+  
       const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' });
-      res.json({ token });
+  
+      // Additional user details to include in the response
+      const userDetails = {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        password: user.password,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        last_login: user.last_login
+      };
+  
+      res.json({
+        msg: 'Logged in!',
+        token,
+        user: userDetails
+      });
     } catch (error) {
       res.status(500).json({ message: 'Login failed' });
     }
+  
   });
   
   module.exports = router;
