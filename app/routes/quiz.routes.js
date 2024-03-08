@@ -72,7 +72,6 @@ module.exports = app => {
         { $match: query },
         {
           $project: {
-             id:1,
              title: 1,
             _id: 1,
             questions: {
@@ -110,27 +109,9 @@ module.exports = app => {
   });
   
   
-  router.put("/:id",validateUserExists, async (req, res) => {
-    // try {
-    //   const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
-    //   if (!updatedQuiz) throw new Error("No quiz found.");
-    //   res.json(updatedQuiz);
-    // } catch (err) {
-    //   if (err.name === "CastError") {
-    //     res.status(400).json({ msg: "Invalid ID." });
-    //   } else if (err.message === "No quiz found.") {
-    //     res.status(404).json({ msg: "Quiz not found." });
-    //   } else {
-    //     console.log(err);
-    //     res.status(500).json({ msg: "Server Error" });
-    //   }
-    // }
+  router.put("/:id", async (req, res) => {
     try {
-      const updatedQuiz = await Quiz.findOneAndUpdate(
-        { id: req.params.id },
-        req.body,
-        { new: true }
-      );
+      const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
       if (!updatedQuiz) throw new Error("No quiz found.");
       res.json(updatedQuiz);
     } catch (err) {
@@ -143,6 +124,24 @@ module.exports = app => {
         res.status(500).json({ msg: "Server Error" });
       }
     }
+    // try {
+    //   const updatedQuiz = await Quiz.findOneAndUpdate(
+    //     { id: req.params.id },
+    //     req.body,
+    //     { new: true }
+    //   );
+    //   if (!updatedQuiz) throw new Error("No quiz found.");
+    //   res.json(updatedQuiz);
+    // } catch (err) {
+    //   if (err.name === "CastError") {
+    //     res.status(400).json({ msg: "Invalid ID." });
+    //   } else if (err.message === "No quiz found.") {
+    //     res.status(404).json({ msg: "Quiz not found." });
+    //   } else {
+    //     console.log(err);
+    //     res.status(500).json({ msg: "Server Error" });
+    //   }
+    // }
   });
   
   router.patch("/:id",validateUserExists, async (req, res) => {
