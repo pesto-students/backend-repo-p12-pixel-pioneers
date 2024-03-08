@@ -9,20 +9,21 @@ const UserAnsSchema = new mongoose.Schema({
 });
 
 const quizSchema = new mongoose.Schema({
-  id: { type: String, required: true },
+  //id: { type: String, required: true },
   title: { type: String, required: true },
   status: { type: String, enum: ['Active', 'Inactive'], required: true },
   createdAt: { type: Date, default: Date.now },
   lastUpdatedAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  persistQuestions: { type: Boolean, default: false },
+  //persistQuestions: { type: Boolean, default: false },
   validity: { type: Date },
   questions : [{
     question_title : { type:String, minlength : 2, maxlength : 100 },
     options : [{ type:String }],
     correct_answer : { type:Number },
-    question_type : { type:String, enum:['MCQ', 'poll'] }
+    question_type : { type:String, enum:['MCQ', 'poll'] },
+    persistQuestions: { type: Boolean, default: false }
   }],
   user_answers : [{
     user : UserAnsSchema,

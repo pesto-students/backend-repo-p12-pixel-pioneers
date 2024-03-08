@@ -58,9 +58,37 @@ module.exports = app => {
   
   // Get all quizzes
   router.get("/", async (req, res) => {
+    // try {
+    //   const query = {}; // Add any filtering criteria here if needed
+    //   const result = await Quiz.find(query, { title: 1, _id: 1,"questions.correct_answer": 0 })    
+    //   res.json(result);
+    // } catch (err) {
+    //   console.log(err);
+    //   res.status(500).json({ msg: "Server Error" });
+    // }
     try {
       const query = {}; // Add any filtering criteria here if needed
-      const result = await Quiz.find(query);
+      const result = await Quiz.aggregate([
+        { $match: query },
+        {
+          $project: {
+             title: 1,
+            _id: 1,
+            questions: {
+              $map: {
+                input: "$questions",
+                as: "question",
+                in: {
+                  question_title: "$$question.question_title",
+                  options: "$$question.options",
+                  question_type: "$$question.question_type"
+                }
+              }
+            }
+          }
+        }
+      ]);
+  
       res.json(result);
     } catch (err) {
       console.log(err);
@@ -166,6 +194,41 @@ module.exports = app => {
       }
     }
   });
+  
+  // API endpoint to fetch answer frequency for each question
+  router.get('/answer-frequency', async (req, res) => {
+    try {
+      const quizzes = await Quiz.find().lean(); // Retrieve all quizzes from MongoDB
+      const answerFrequency = [];
+  
+      quizzes.forEach((quiz) => {
+        quiz.questions.forEach((question) => {
+          const questionData = {
+            question: question.question_title,
+            analytics: []
+          };
+  
+          // Calculate answer frequency for each option in the question
+          question.options.forEach((option, index) => {
+            const optionData = {
+              option: option,
+              frequency: quiz.user_answers.filter((answer) => answer.answers.includes(index)).length,
+              correct_answer: index === question.correct_answer
+            };
+            questionData.analytics.push(optionData);
+          });
+  
+          answerFrequency.push(questionData);
+        });
+      });
+  
+      res.json(answerFrequency);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server Error' });
+    }
+  });
+  
   
   module.exports = router;
   app.use("/api/quizs", router);
