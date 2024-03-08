@@ -88,8 +88,7 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
     }
 
     //getUserAnswerDetails(quizData, userEmail);
-    try {
-      
+    try {       
 
       // Find the user's answers
       const userAnswers = quizData.user_answers.find(userAnswer => userAnswer.user.email === userEmail);
@@ -98,7 +97,6 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
           console.log(`User '${userEmail}' not found.`);
           return;
       }
-
       // Iterate through the user's answers
       userAnswers.answers.forEach((answerIndex, questionIndex) => {
           if (answerIndex >= 0 && answerIndex < quizData.questions.length) {
@@ -113,7 +111,7 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
               // Add answer details to the result array
               userAnswerDetails.push({
                   question: question.question_title,
-                  optionChosen: option,
+                  userAnswer: option,
                   correctAnswer: correctAnswer,
                   isCorrect: isCorrect
               });
@@ -125,7 +123,7 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
       console.error('Error:', error.message);
   }
 
-    res.json(userAnswerDetails);
+   return  res.json(userAnswerDetails);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -138,50 +136,64 @@ router.get('/quiz/:quizId/answer-stats', async (req, res) => {
   let totalCorrectAnswers = 0;
   let totalWrongAnswers = 0;
   let totalAnswers = 0;
+  const userAnswerStats = [];
 
   try {
-    const quizData = await Quiz.findOne({ id: quizId });
+      const quizData = await Quiz.findOne({ id: quizId });
 
-    if (!quizData) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
+      if (!quizData) {
+          return res.status(404).json({ message: 'Quiz not found' });
+      }
 
-    try {
-     
-      // Iterate through user answers
-      quizData.user_answers.forEach(userAnswer => {
-          userAnswer.answers.forEach((answerIndex, questionIndex) => {
-              if (answerIndex >= 0 && answerIndex < quizData.questions.length) {
-                  const correctAnswerIndex = quizData.questions[questionIndex].correct_answer;
-                  if (answerIndex === correctAnswerIndex) {
-                      totalCorrectAnswers++;
-                  } else {
-                      totalWrongAnswers++;
+      try {
+          // Iterate through user answers
+          quizData.user_answers.forEach(userAnswer => {
+              let correctAnswers = 0;
+              let wrongAnswers = 0;
+
+              userAnswer.answers.forEach((answerIndex, questionIndex) => {
+                  if (answerIndex >= 0 && answerIndex < quizData.questions.length) {
+                      const correctAnswerIndex = quizData.questions[questionIndex].correct_answer;
+                      if (answerIndex === correctAnswerIndex) {
+                          correctAnswers++;
+                          totalCorrectAnswers++;
+                      } else {
+                          wrongAnswers++;
+                          totalWrongAnswers++;
+                      }
+                      totalAnswers++;
                   }
-                  totalAnswers++;
-              }
-          });
-      });
+              });
 
-      console.log('Total Correct Answers:', totalCorrectAnswers);
-      console.log('Total Wrong Answers:', totalWrongAnswers);
-      console.log('Total Answers:', totalAnswers);
+              userAnswerStats.push({
+                  key: userAnswer.user.email,
+                  correctAnswers,
+                  wrongAnswers
+              });
+          });
+
+          console.log('Total Correct Answers:', totalCorrectAnswers);
+          console.log('Total Wrong Answers:', totalWrongAnswers);
+          console.log('Total Answers:', totalAnswers);
+      } catch (error) {
+          console.error('Error:', error.message);
+      }
+
+      const percentage = {
+          totalCorrectAnswers,
+          totalWrongAnswers,
+          totalAnswers
+      };
+
+      res.json({
+          result: userAnswerStats,
+          percentage
+      });
   } catch (error) {
-      console.error('Error:', error.message);
-  }
-  res.json({
-      quizId,
-      totalCorrectAnswers,
-      totalWrongAnswers,
-      totalAnswers
-    });
-    //res.json({ message: 'Total answer statistics calculated successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
 module.exports = router;
 app.use("/api/analytics", router);
 }
