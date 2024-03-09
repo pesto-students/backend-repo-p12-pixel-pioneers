@@ -29,6 +29,7 @@ module.exports = app => {
   const router = express.Router();
   const Quiz = require('../models/quiz.model');
   const User = require('../models/user.model');
+  const axios = require('axios');
   
   
   const validateUserExists = async (req, res, next) => {
@@ -177,6 +178,33 @@ module.exports = app => {
     //     res.status(500).json({ msg: "Server Error" });
     //   }
     // }
+  });
+  
+  // Add a user to user_answers for a quiz
+  router.post('/:quizId/user_answers', async (req, res) => {
+    const { name, age, gender, email, city, answers } = req.body;
+    const { quizId } = req.params;
+  
+    try {
+      const quiz = await Quiz.findById(quizId);
+  
+      if (!quiz) {
+        return res.status(404).json({ message: 'Quiz not found' });
+      }
+  
+      const newUserAnswer = {
+        user: { name, age, gender, email, city },
+        answers
+      };
+  
+      quiz.user_answers.push(newUserAnswer);
+      await quiz.save();
+  
+      res.json({ message: 'User added to user_answers successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
   });
   
   router.get("/:id", async (req, res) => {
