@@ -207,6 +207,23 @@ module.exports = app => {
     //   }
     // }
   });
+  router.get('/excludeAns/:id', async (req, res) => {
+    const quizId = req.params.id;
+  
+    try {
+      const quiz = await Quiz.findById(quizId, { 'questions.correct_answer': 0 }).lean();
+  
+      if (!quiz) {
+        return res.status(404).json({ message: 'Quiz not found' });
+      }
+  
+      res.status(200).json(quiz);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error fetching quiz' });
+    }
+  });
+  
   
   // API endpoint to fetch answer frequency for each question
   router.get('/answer-frequency', async (req, res) => {
