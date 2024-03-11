@@ -30,6 +30,7 @@ module.exports = app => {
   const Quiz = require('../models/quiz.model');
   const User = require('../models/user.model');
   const axios = require('axios');
+  const jwt = require('jsonwebtoken');
   
   
   const validateUserExists = async (req, res, next) => {
@@ -47,15 +48,32 @@ module.exports = app => {
   };
   
   router.post('/', async (req, res) => {
-    try {
-      
-      const quiz = new Quiz(req.body);    
-      await quiz.save();    
-      res.status(201).send(quiz);
-    } catch (error) {
-      res.status(400).send(error);
-    }
+  
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+  
+      jwt.verify(token, 'secret_key', (err, decoded) => {
+          if (err) {
+              return res.status(401).json({ message: 'Invalid token' });
+          }        
+          const newQuiz = new Quiz({
+            title: req.body.title,
+            status: req.body.status,
+            createdBy: userId,
+            lastUpdatedBy: userId,
+            validity: req.body.validity,
+            questions: req.body.questions,
+            user_answers: []
+        });
+          newQuiz.save()
+          .then((quiz) => {
+              res.status(201).json(quiz);
+          })
+          .catch((error) => {
+              res.status(400).json({ message: error.message });
+          });
   });
+  });
+  
   
   // Get all quizzes
   router.get("/", async (req, res) => {
@@ -287,6 +305,23 @@ module.exports = app => {
     }
   });
   
+  // API endpoint to fetch all quizzes created by a specific user
+  router.get('/quizzes/:userId', async (req, res) => {
+    const userId = req.params.userId;
+  
+    try {
+        const quizzes = await Quiz.find({ createdBy: userId });
+  
+        if (!quizzes) {
+            return res.status(404).json({ message: 'No quizzes found for this user' });
+        }
+  
+        res.status(200).json({ quizzes });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
   
   module.exports = router;
   app.use("/api/quizs", router);

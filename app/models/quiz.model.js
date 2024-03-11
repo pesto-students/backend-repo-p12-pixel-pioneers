@@ -14,8 +14,8 @@ const quizSchema = new mongoose.Schema({
   status: { type: String, enum: ['Active', 'Inactive'], required: true },
   createdAt: { type: Date, default: Date.now },
   lastUpdatedAt: { type: Date, default: Date.now },
-  createdBy: {type: String},//{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  lastUpdatedBy: {type: String},//{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  lastUpdatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   //persistQuestions: { type: Boolean, default: false },
   validity: { type: Date },
   questions : [{
