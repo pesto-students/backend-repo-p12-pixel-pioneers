@@ -54,7 +54,8 @@ module.exports = app => {
       jwt.verify(token, 'secret_key', (err, decoded) => {
           if (err) {
               return res.status(401).json({ message: 'Invalid token' });
-          }        
+          } 
+          const userId = decoded.userId;       
           const newQuiz = new Quiz({
             title: req.body.title,
             status: req.body.status,
