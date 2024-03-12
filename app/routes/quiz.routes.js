@@ -1,28 +1,3 @@
-// module.exports = app => {
-//     const quiz = require("../controllers/quiz.controller.js");
-  
-//     var router = require("express").Router();
-  
-//     // Create a new User
-//     router.post("/", quiz.create);
-
-//     // Retrieve all Users
-//    router.get("/", quiz.findAll);
-
-//    // Retrieve a single user with id
-//    router.get("/:id", quiz.findOne);
-
-//     // Update a User with id
-//    router.put("/:id", quiz.update);
-
-//   // Delete a User with id
-//   router.delete("/:id", quiz.delete);
-
-//   // Create a new User
-//   router.delete("/", quiz.deleteAll);
-
-//     app.use("/api/quizs", router);
-// };  
 
 module.exports = app => {
   const express = require('express');
@@ -31,6 +6,8 @@ module.exports = app => {
   const User = require('../models/user.model');
   const axios = require('axios');
   const jwt = require('jsonwebtoken');
+  const openAI = require('openai');
+  require('dotenv').config();
   
   
   const validateUserExists = async (req, res, next) => {
@@ -54,8 +31,10 @@ module.exports = app => {
       jwt.verify(token, 'secret_key', (err, decoded) => {
           if (err) {
               return res.status(401).json({ message: 'Invalid token' });
-          } 
-          const userId = decoded.userId;       
+          }
+          console.log(decoded);
+          const userId = decoded.userId;
+          console.log('userId:'+ userId);
           const newQuiz = new Quiz({
             title: req.body.title,
             status: req.body.status,
@@ -323,6 +302,35 @@ module.exports = app => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
   });
+  
+  router.post('/create-questions', async (req, res) => {
+     const { topic } = req.body;
+    console.log(topic);    
+    
+    const openaiApiKey = process.env.OPENAI_API_KEY; // Access OpenAI API key from environment
+     console.log(openaiApiKey);    
+    const openai = new openAI({apiKey:openaiApiKey})
+    const aiModel="gpt-3.5-turbo-0125"
+    const messages=[
+      {
+        role:"system",
+        content:`you are a quiz master.generate 5  questions on ${topic} with 4 multiple choices with following jSON format`
+      }
+    ]
+    console.log(messages);
+    const completion = await openai.chat.completions.create({
+      model :aiModel,
+      response_format:{"type":"json_object"},
+      messages
+    })
+  
+  
+    const aiResponse = completion.choices[0].message.content
+    const json =JSON.parse(aiResponse);
+    res.json(json)
+  
+  });
+  
   
   module.exports = router;
   app.use("/api/quizs", router);
