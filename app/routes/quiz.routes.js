@@ -4,6 +4,7 @@ module.exports = app => {
   const router = express.Router();
   const Quiz = require('../models/quiz.model');
   const User = require('../models/user.model');
+  const QuestionBank = require('../models/questionBank.model');
   const axios = require('axios');
   const jwt = require('jsonwebtoken');
   const openAI = require('openai');
@@ -25,17 +26,40 @@ module.exports = app => {
   };
   
   router.post('/', async (req, res) => {
-  
     const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
   
-      jwt.verify(token, 'secret_key', (err, decoded) => {
-          if (err) {
-              return res.status(401).json({ message: 'Invalid token' });
-          }
-          console.log(decoded);
-          const userId = decoded.userId;
-          console.log('userId:'+ userId);
-          const newQuiz = new Quiz({
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        const userId = decoded.userId;
+  
+        if (req.body.questions && req.body.questions.length > 0) {
+            const persistQuestions = req.body.questions.some(question => question.persistQuestions === true);
+  
+            if (persistQuestions) {
+                const newQuestions = req.body.questions.filter(question => question.persistQuestions === true);
+  
+                try {
+                    const savedQuestions = await QuestionBank .create(newQuestions.map(question => ({
+                        question_title: question.question_title,
+                        options: question.options,
+                        correct_answer: question.correct_answer,
+                        question_type: question.question_type,
+                        createdBy: userId,
+                        lastUpdatedBy: userId
+                    })));
+  
+                    console.log('Questions saved in QuestionBank:', savedQuestions);
+  
+                } catch (error) {
+                    return res.status(400).json({ message: error.message });
+                }
+            }
+        }
+  
+        const newQuiz = new Quiz({
             title: req.body.title,
             status: req.body.status,
             createdBy: userId,
@@ -44,16 +68,16 @@ module.exports = app => {
             questions: req.body.questions,
             user_answers: []
         });
-          newQuiz.save()
-          .then((quiz) => {
-              res.status(201).json(quiz);
-          })
-          .catch((error) => {
-              res.status(400).json({ message: error.message });
-          });
-  });
-  });
   
+        newQuiz.save()
+            .then((quiz) => {
+                res.status(201).json(quiz);
+            })
+            .catch((error) => {
+                res.status(400).json({ message: error.message });
+            });
+    });
+  });
   
   // Get all quizzes
   router.get("/", async (req, res) => {
@@ -109,73 +133,86 @@ module.exports = app => {
   
   
   router.put("/:id", async (req, res) => {
-    try {
-      const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate("createdBy").populate("lastUpdatedBy");
-      if (!updatedQuiz) throw new Error("No quiz found.");
-      res.json(updatedQuiz);
-    } catch (err) {
-      if (err.name === "CastError") {
-        res.status(400).json({ msg: "Invalid ID." });
-      } else if (err.message === "No quiz found.") {
-        res.status(404).json({ msg: "Quiz not found." });
-      } else {
-        console.log(err);
-        res.status(500).json({ msg: "Server Error" });
-      }
-    }
-    // try {
-    //   const updatedQuiz = await Quiz.findOneAndUpdate(
-    //     { id: req.params.id },
-    //     req.body,
-    //     { new: true }
-    //   );
-    //   if (!updatedQuiz) throw new Error("No quiz found.");
-    //   res.json(updatedQuiz);
-    // } catch (err) {
-    //   if (err.name === "CastError") {
-    //     res.status(400).json({ msg: "Invalid ID." });
-    //   } else if (err.message === "No quiz found.") {
-    //     res.status(404).json({ msg: "Quiz not found." });
-    //   } else {
-    //     console.log(err);
-    //     res.status(500).json({ msg: "Server Error" });
-    //   }
-    // }
-  });
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
   
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        const userId = decoded.userId;
+        console.log('userId' + userId);
+  
+        try {
+            const quiz = await Quiz.findById(req.params.id);
+  
+            if (!quiz) {
+                return res.status(404).json({ message: "Quiz not found." });
+            }
+  
+            if (quiz.createdBy.toString() !== userId) {
+                return res.status(403).json({ message: "Unauthorized to update this quiz." });
+            }
+  
+            const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  
+            if (!updatedQuiz) {
+                throw new Error("No quiz found.");
+            }
+  
+            res.json(updatedQuiz);
+        } catch (err) {
+            if (err.name === "CastError") {
+                res.status(400).json({ message: "Invalid ID." });
+            } else if (err.message === "No quiz found.") {
+                res.status(404).json({ message: "Quiz not found." });
+            } else {
+                console.log(err);
+                res.status(500).json({ message: "Server Error" });
+            }
+        }
+    });
+  });
   router.patch("/:id", async (req, res) => {
-    try {
-      const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate("createdBy").populate("lastUpdatedBy");
-      if (!updatedQuiz) throw new Error("No quiz found.");
-      res.json(updatedQuiz);
-    } catch (err) {
-      if (err.name === "CastError") {
-        res.status(400).json({ msg: "Invalid ID." });
-      } else if (err.message === "No quiz found.") {
-        res.status(404).json({ msg: "Quiz not found." });
-      } else {
-        console.log(err);
-        res.status(500).json({ msg: "Server Error" });
-      }
-    }
-    // try {
-    //   const updatedQuiz = await Quiz.findOneAndUpdate(
-    //     { id: req.params.id },
-    //     { $set: req.body },
-    //     { new: true }
-    //   ).populate("createdBy").populate("lastUpdatedBy");
-    //   if (!updatedQuiz) throw new Error("No quiz found.");
-    //   res.json(updatedQuiz);
-    // } catch (err) {
-    //   if (err.name === "CastError") {
-    //     res.status(400).json({ msg: "Invalid ID." });
-    //   } else if (err.message === "No quiz found.") {
-    //     res.status(404).json({ msg: "Quiz not found." });
-    //   } else {
-    //     console.log(err);
-    //     res.status(500).json({ msg: "Server Error" });
-    //   }
-    // }
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+  
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        const userId = decoded.userId;
+        console.log('userId' + userId);
+  
+        try {
+            const quiz = await Quiz.findById(req.params.id);
+  
+            if (!quiz) {
+                return res.status(404).json({ message: "Quiz not found." });
+            }
+  
+            if (quiz.createdBy.toString() !== userId) {
+                return res.status(403).json({ message: "Unauthorized to update this quiz." });
+            }
+  
+            const updatedQuiz = await Quiz.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  
+            if (!updatedQuiz) {
+                throw new Error("No quiz found.");
+            }
+  
+            res.json(updatedQuiz);
+        } catch (err) {
+            if (err.name === "CastError") {
+                res.status(400).json({ message: "Invalid ID." });
+            } else if (err.message === "No quiz found.") {
+                res.status(404).json({ message: "Quiz not found." });
+            } else {
+                console.log(err);
+                res.status(500).json({ message: "Server Error" });
+            }
+        }
+    });
   });
   
   // Add a user to user_answers for a quiz
@@ -304,10 +341,12 @@ module.exports = app => {
   });
   
   router.post('/create-questions', async (req, res) => {
-     
+     const topic = req.body.topic;
+     const noOfQuestions = req.body.noOfQuestions;
      const difficultyLevel = req.body.difficultyLevel;
      const keywords = req.body.keywords || [];
-     const topic = keywords.join('');
+     const context = keywords.join('');
+  
      console.log(difficultyLevel);
      console.log(topic);
     
@@ -318,10 +357,11 @@ module.exports = app => {
     const messages=[
       {
         role:"system",
-        content:`you are a quiz master.generate 5 questions on ${topic} with 4 multiple choices with following jSON format with difficulty level ${difficultyLevel}`
+        //content:`you are a quiz master.generate 5 questions on ${topic} with 4 multiple choices with following jSON format with difficulty level ${difficultyLevel}`
+        content:`OpenAI,you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context "${context}". The questions should be of ${difficultyLevel} difficulty and I would like to request ${noOfQuestions} questions. Each question should have four answer choices, with one correct answer in JSON format. Thank you!`
       }
     ]
-    console.log(messages);
+    //console.log(messages);
     const completion = await openai.chat.completions.create({
       model :aiModel,
       response_format:{"type":"json_object"},
