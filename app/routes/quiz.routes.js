@@ -304,17 +304,21 @@ module.exports = app => {
   });
   
   router.post('/create-questions', async (req, res) => {
-     const { topic } = req.body;
-    console.log(topic);    
+     
+     const difficultyLevel = req.body.difficultyLevel;
+     const keywords = req.body.keywords || [];
+     const topic = keywords.join('');
+     console.log(difficultyLevel);
+     console.log(topic);
     
-    const openaiApiKey = process.env.OPENAI_API_KEY; // Access OpenAI API key from environment
-     console.log(openaiApiKey);    
+    
+    const openaiApiKey = process.env.OPENAI_API_KEY; // Access OpenAI API key from environment     
     const openai = new openAI({apiKey:openaiApiKey})
     const aiModel="gpt-3.5-turbo-0125"
     const messages=[
       {
         role:"system",
-        content:`you are a quiz master.generate 5  questions on ${topic} with 4 multiple choices with following jSON format`
+        content:`you are a quiz master.generate 5 questions on ${topic} with 4 multiple choices with following jSON format with difficulty level ${difficultyLevel}`
       }
     ]
     console.log(messages);
