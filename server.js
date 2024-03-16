@@ -41,7 +41,7 @@ require("./app/routes/user.routes")(app);
 require("./app/routes/quiz.routes")(app);
 require("./app/routes/question.routes")(app);
 require("./app/routes/analytics.routes")(app);
-require("./app/routes/googleauth.routes")(app);
+//require("./app/routes/googleauth.routes")(app);
 require("./app/routes/questionBank.routes")(app);
 // set port, listen for requests
 const PORT = process.env.PORT || 8080;
