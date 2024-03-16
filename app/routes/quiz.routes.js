@@ -345,11 +345,11 @@ module.exports = app => {
      const noOfQuestions = req.body.noOfQuestions;
      const difficultyLevel = req.body.difficultyLevel;
      const keywords = req.body.keywords || [];
-     const context = keywords.join('');
+     const context = keywords.join(' ');
   
      console.log(difficultyLevel);
      console.log(topic);
-    
+     console.log(noOfQuestions);
     
     const openaiApiKey = process.env.OPENAI_API_KEY; // Access OpenAI API key from environment     
     const openai = new openAI({apiKey:openaiApiKey})
@@ -358,10 +358,11 @@ module.exports = app => {
       {
         role:"system",
         //content:`you are a quiz master.generate 5 questions on ${topic} with 4 multiple choices with following jSON format with difficulty level ${difficultyLevel}`
-        content:`OpenAI,you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context "${context}". The questions should be of ${difficultyLevel} difficulty and I would like to request ${noOfQuestions} questions. Each question should have four answer choices, with one correct answer in JSON format. Thank you!`
+        //content:`OpenAI,you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context "${context}". The questions should be of ${difficultyLevel} difficulty and I would like to request ${noOfQuestions} questions. Each question should have four answer choices, with one correct answer in JSON format. Thank you!`
+        content:`OpenAI, you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context ${context}. The questions should be of ${difficultyLevel} difficulty. Each question should have four answer choices, with one correct answer in JSON format. Thank you!`
       }
     ]
-    //console.log(messages);
+    console.log(messages);
     const completion = await openai.chat.completions.create({
       model :aiModel,
       response_format:{"type":"json_object"},
