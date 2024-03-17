@@ -244,7 +244,7 @@ module.exports = app => {
   
   router.get("/:id", async (req, res) => {
     try {
-      const quiz = await Quiz.findById(req.params.id).populate("createdBy").populate("lastUpdatedBy");
+      const quiz = await Quiz.findById(req.params.id);
       if (!quiz) throw new Error("No quiz found.");
       res.json(quiz);
     } catch (err) {
