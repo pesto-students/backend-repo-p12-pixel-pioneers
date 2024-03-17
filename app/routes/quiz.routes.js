@@ -359,7 +359,13 @@ module.exports = app => {
         role:"system",
         //content:`you are a quiz master.generate 5 questions on ${topic} with 4 multiple choices with following jSON format with difficulty level ${difficultyLevel}`
         //content:`OpenAI,you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context "${context}". The questions should be of ${difficultyLevel} difficulty and I would like to request ${noOfQuestions} questions. Each question should have four answer choices, with one correct answer in JSON format. Thank you!`
-        content:`OpenAI, you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context ${context}. The questions should be of ${difficultyLevel} difficulty. Each question should have four answer choices, with one correct answer in JSON format. Thank you!`
+        content:`OpenAI, you are a quiz master, please generate ${noOfQuestions} multiple-choice questions related to the topic ${topic} with the context ${context}. The questions should be of ${difficultyLevel} difficulty. Each question should have four answer choices, with one correct answer in JSON format questions : [{
+          question_title : { type:String, minlength : 2, maxlength : 100 },
+          options : [{ type:String }],
+          correct_answer : { type:Number },
+          question_type : { type:String, enum:['MCQ', 'poll'] },
+          persistQuestions: { type: Boolean, default: false }
+        }]. kindly avoid having A,B,C,D in options Thank you!`
       }
     ]
     console.log(messages);
