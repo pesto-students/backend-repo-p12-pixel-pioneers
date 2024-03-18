@@ -81,6 +81,7 @@ module.exports = app => {
   
   // Get all quizzes
   router.get("/", async (req, res) => {
+  
     const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
   
     jwt.verify(token, 'secret_key', async (err, decoded) => {
@@ -89,35 +90,20 @@ module.exports = app => {
         }
   
         const userId = decoded.userId;
+        console.log(userId);
      
     try {
-      const query = {createdBy: userId}; // Add any filtering criteria here if needed
-      const result = await Quiz.aggregate([
-        { $match: query },
-        {
-          $project: {
-             title: 1,
-            _id: 1,
-            questions: {
-              $map: {
-                input: "$questions",
-                as: "question",
-                in: {
-                  question_title: "$$question.question_title",
-                  options: "$$question.options",
-                  question_type: "$$question.question_type"
-                }
-              }
-            }
-          }
-        }
-      ]);
+        const query = { createdBy: userId }; // Filter quizzes created by the user
   
-      res.json(result);
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ msg: "Server Error" });
-    }
+        const result = await Quiz.find(query)
+          .select('-questions.correct_answer') // Exclude correct_answer from questions
+          .exec();
+  
+        res.json(result);
+      } catch (err) {
+        console.log(err);
+        res.status(500).json({ msg: "Server Error" });
+      }
   });
   });
   
