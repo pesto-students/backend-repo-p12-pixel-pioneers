@@ -81,16 +81,17 @@ module.exports = app => {
   
   // Get all quizzes
   router.get("/", async (req, res) => {
-    // try {
-    //   const query = {}; // Add any filtering criteria here if needed
-    //   const result = await Quiz.find(query, { title: 1, _id: 1,"questions.correct_answer": 0 })    
-    //   res.json(result);
-    // } catch (err) {
-    //   console.log(err);
-    //   res.status(500).json({ msg: "Server Error" });
-    // }
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+  
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        const userId = decoded.userId;
+     
     try {
-      const query = {}; // Add any filtering criteria here if needed
+      const query = {createdBy: userId}; // Add any filtering criteria here if needed
       const result = await Quiz.aggregate([
         { $match: query },
         {
@@ -117,6 +118,7 @@ module.exports = app => {
       console.log(err);
       res.status(500).json({ msg: "Server Error" });
     }
+  });
   });
   
   router.get("/questions", async (req, res) => {
