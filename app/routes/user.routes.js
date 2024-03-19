@@ -45,7 +45,7 @@ module.exports = app => {
       const newUser = new User({ email, password });
       await newUser.save();
   
-      const token = jwt.sign({ userId: newUser._id }, 'secret_key', { expiresIn: '1m' });
+      const token = jwt.sign({ userId: newUser._id }, 'secret_key', { expiresIn: '1y' });
       //await Session.create({ email, accessToken: token });
   
       // Additional user details to include in the response
@@ -114,7 +114,7 @@ module.exports = app => {
       user.last_login = new Date();
       await user.save();
   
-      const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1m' });
+      const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1y' });
       //await Session.create({ email, accessToken: token });
   
       // Additional user details to include in the response
@@ -226,11 +226,23 @@ module.exports = app => {
   
   // Change password
   router.put('/change-password', async (req, res) => {
-    const { email, oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;
+  
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+  
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        const userId = decoded.userId;
+        console.log(userId);
+  
   
     try {
       // Find the user by email
-      const user = await User.findOne({ email });
+      const user = await User.findById(userId);  //findOne({ userId });
+      console.log(user);
   
       // Check if the user exists
       if (!user) {
@@ -245,23 +257,26 @@ module.exports = app => {
   
       // Hash the new password
      // const hashedPassword = await bcrypt.hash(newPassword, 10);
-  
+     
+     if (!validatePassword(newPassword)) {
+      return res.status(400).json({ message: 'Please provide a valid password' });
+    }
       // Update the user's password
       user.password = newPassword;
       await user.save();
   
       // Generate a new JWT token with the updated user information
-      const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1y' });
   
       // Additional user details to include in the response
       const userDetails = {
         id: user._id,
         email: user.email,
-        role: user.role,
+        first_name:user.first_name,
+        last_name:user.last_name,
         phone: user.phone,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        last_login: user.last_login
+         last_login: user.last_login
       };
   
       res.json({
@@ -274,31 +289,80 @@ module.exports = app => {
       res.status(500).json({ message: 'Internal server error' });
     }
   });
+  });
   
   
   // Update user name
-  router.put('/update-name', async (req, res) => {
-    const { email, newName } = req.body;
+  // router.put('/update-name', async (req, res) => {
+  //   const { email, newName } = req.body;
+  //   const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
   
-    try {
-      // Find the user by email
-      const user = await User.findOne({ email });
+  //   jwt.verify(token, 'secret_key', async (err, decoded) => {
+  //       if (err) {
+  //           return res.status(401).json({ message: 'Invalid token' });
+  //       }
   
-      // Check if the user exists
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+  //       const email = decoded.userId;
+  
+  //   try {
+  //     // Find the user by email
+  //     const user = await User.findOne({ email });
+  
+  //     // Check if the user exists
+  //     if (!user) {
+  //       return res.status(404).json({ message: 'User not found' });
+  //     }
+  
+  //     // Update the user's name
+  //     user.name = newName;
+  //     await user.save();
+  
+  //     // Return the updated user
+  //     res.json({ message: 'User name updated successfully'});
+  //   } catch (err) {
+  //     console.error(err);
+  //     res.status(500).json({ message: 'Internal server error' });
+  //   }
+  // });
+  // });
+  
+  router.put('/update-user', async (req, res) => {
+    const {newFields} = req.body;
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+  
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: 'Invalid token' });
       }
   
-      // Update the user's name
-      user.name = newName;
-      await user.save();
+      const userId = decoded.userId;
   
-      // Return the updated user
-      res.json({ message: 'User name updated successfully'});
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
-    }
+      try {
+        // Find the user by email
+        const user = await User.findById(userId);
+        //const user = await User.findOne({ email: userEmail });
+  
+        // Check if the user exists
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+  
+        // Update all fields except email and password
+        for (const key in newFields) {
+          if (key !== 'email' && key !== 'password') {
+            user[key] = newFields[key];
+          }
+        }
+  
+        await user.save();
+  
+        // Return the updated user
+        res.json({ message: 'User updated successfully' });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    });
   });
   
   module.exports = router;

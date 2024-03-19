@@ -25,7 +25,9 @@ const bcrypt = require('bcryptjs');
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: false },
-  name:{type:String},
+  first_name:{type:String},
+  last_name:{type:String},
+  phoneNumber:{type:Number},
   createdAt: { type: Date, default: Date.now },
   lastUpdatedAt: { type: Date, default: Date.now },
   last_login: { type: Date }
