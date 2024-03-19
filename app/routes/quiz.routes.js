@@ -270,7 +270,7 @@ module.exports = app => {
     // }
   });
   });
-  
+
   router.get('/excludeAns/:id', async (req, res) => {
     const quizId = req.params.id;
   
@@ -323,23 +323,33 @@ module.exports = app => {
     }
   });
   
+  
   // API endpoint to fetch all quizzes created by a specific user
-  router.get('/quizzes/:userId', async (req, res) => {
-    const userId = req.params.userId;
-  
-    try {
-        const quizzes = await Quiz.find({ createdBy: userId });
-  
-        if (!quizzes) {
-            return res.status(404).json({ message: 'No quizzes found for this user' });
-        }
-  
-        res.status(200).json({ quizzes });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-  });
+router.get('/quizzes/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+
+  jwt.verify(token, 'secret_key', async (err, decoded) => {
+      if (err) {
+          return res.status(401).json({ message: 'Invalid token' });
+      }
+
+      const user_id = decoded.userId;
+      console.log('userId' + user_id);
+  try {
+      const quizzes = await Quiz.find({ createdBy: userId });
+
+      if (!quizzes) {
+          return res.status(404).json({ message: 'No quizzes found for this user' });
+      }
+
+      res.status(200).json({ quizzes });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+});
   
   router.post('/create-questions', async (req, res) => {
      const topic = req.body.topic;
