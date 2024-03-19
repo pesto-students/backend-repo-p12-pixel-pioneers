@@ -232,6 +232,16 @@ module.exports = app => {
   });
   
   router.get("/:id", async (req, res) => {
+    const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
+  
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+  
+        const userId = decoded.userId;
+        console.log('userId' + userId);
+  
     try {
       const quiz = await Quiz.findById(req.params.id);
       if (!quiz) throw new Error("No quiz found.");
@@ -259,6 +269,8 @@ module.exports = app => {
     //   }
     // }
   });
+  });
+  
   router.get('/excludeAns/:id', async (req, res) => {
     const quizId = req.params.id;
   
