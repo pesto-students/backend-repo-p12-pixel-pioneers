@@ -131,67 +131,62 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
 });
 
 // Route to get total answer statistics for a specific quiz
+// Route to fetch statistics for quiz answers
 router.get('/quiz/:quizId/answer-stats', async (req, res) => {
-  const quizId = req.params.quizId;
-  let totalCorrectAnswers = 0;
-  let totalWrongAnswers = 0;
-  let totalAnswers = 0;
-  const userAnswerStats = [];
-
   try {
-      const quizData = await Quiz.findOne({ id: quizId });
+    const { quizId } = req.params;
+    const quiz = await Quiz.findById(quizId);
 
-      if (!quizData) {
-          return res.status(404).json({ message: 'Quiz not found' });
-      }
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
 
-      try {
-          // Iterate through user answers
-          quizData.user_answers.forEach(userAnswer => {
-              let correctAnswers = 0;
-              let wrongAnswers = 0;
+    let totalCorrectAnswers = 0;
+    let totalWrongAnswers = 0;
+    let totalAnswers = 0;
+    const userStatistics = [];
 
-              userAnswer.answers.forEach((answerIndex, questionIndex) => {
-                  if (answerIndex >= 0 && answerIndex < quizData.questions.length) {
-                      const correctAnswerIndex = quizData.questions[questionIndex].correct_answer;
-                      if (answerIndex === correctAnswerIndex) {
-                          correctAnswers++;
-                          totalCorrectAnswers++;
-                      } else {
-                          wrongAnswers++;
-                          totalWrongAnswers++;
-                      }
-                      totalAnswers++;
-                  }
-              });
+    // Iterate through each user answer
+    quiz.user_answers.forEach(userAnswer => {
+      let correctAnswers = 0;
+      let wrongAnswers = 0;
 
-              userAnswerStats.push({
-                  key: userAnswer.user.email,
-                  correctAnswers,
-                  wrongAnswers
-              });
-          });
+      // Iterate through each question in the quiz
+      quiz.questions.forEach((question, index) => {
+        const userOption = userAnswer.answers[index];
+        const correctOptionIndex = question.correct_answer;
 
-          console.log('Total Correct Answers:', totalCorrectAnswers);
-          console.log('Total Wrong Answers:', totalWrongAnswers);
-          console.log('Total Answers:', totalAnswers);
-      } catch (error) {
-          console.error('Error:', error.message);
-      }
-
-      const percentage = {
-          totalCorrectAnswers,
-          totalWrongAnswers,
-          totalAnswers
-      };
-
-      res.json({
-          result: userAnswerStats,
-          percentage
+        if (userOption === correctOptionIndex) {
+          correctAnswers++;
+        } else {
+          wrongAnswers++;
+        }
       });
+
+      totalCorrectAnswers += correctAnswers;
+      totalWrongAnswers += wrongAnswers;
+      totalAnswers += userAnswer.answers.length;
+
+      userStatistics.push({
+        key: userAnswer.user.email,
+        correctAnswers,
+        wrongAnswers
+      });
+    });
+
+    const percentage = {
+      totalCorrectAnswers,
+      totalWrongAnswers,
+      totalAnswers
+    };
+
+    res.json({
+      result: userStatistics,
+      percentage
+    });
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 module.exports = router;
