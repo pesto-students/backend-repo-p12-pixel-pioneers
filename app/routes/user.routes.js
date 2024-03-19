@@ -365,6 +365,47 @@ module.exports = app => {
     });
   });
   
+  // Route to fetch user profile by userID from token
+router.get('/profile', async (req, res) => {
+  try {
+    // Extract the token from the authorization header
+    const token = req.headers.authorization.split(' ')[1];
+
+    // Verify the token and decode it to get the userID
+    jwt.verify(token, 'secret_key', async (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: 'Invalid token' });
+      }
+
+      const userID = decoded.userId;
+
+      // Find the user by userID
+      const user = await User.findById(userID);
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Omitting password field for security reasons
+      const userProfile = {
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        phoneNumber: user.phoneNumber,
+        createdAt: user.createdAt,
+        lastUpdatedAt: user.lastUpdatedAt,
+        last_login: user.last_login
+      };
+
+      res.json(userProfile);
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
   module.exports = router;
   app.use("/api/users", router);
   };  
