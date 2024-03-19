@@ -7,13 +7,19 @@ module.exports = app => {
   //const emailValidator = require('email-deep-validator');
   const crypto = require('crypto');
   const nodemailer = require('nodemailer');
-  //const ForgotPassword = require('../models/forgotPassword.model'); 
+  const ForgotPassword = require('../models/forgotPassword.model'); 
   //import emailValidator from "deep-email-validator";
   
   
   const validateEmail = (email) => {
     const re = /\S+@\S+\.\S+/;
     return re.test(email);
+  };
+  
+  const validatePassword = (password) => {
+    // Regular expression to match password criteria
+    const re = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    return re.test(password);
   };
   
   router.post('/register', async (req, res) => {
@@ -26,6 +32,9 @@ module.exports = app => {
   
       if (!validateEmail(email)) {
         return res.status(400).json({ message: 'Please provide a valid email address' });
+      }
+      if (!validatePassword(password)) {
+        return res.status(400).json({ message: 'Please provide a valid password' });
       }
       const existingUser = await User.findOne({ email });
   
@@ -88,7 +97,7 @@ module.exports = app => {
       user.last_login = new Date();
       await user.save();
   
-      const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user._id }, 'secret_key', { expiresIn: '1m' });
       //await Session.create({ email, accessToken: token });
   
       // Additional user details to include in the response

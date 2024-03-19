@@ -108,6 +108,7 @@ module.exports = app => {
   });
   
   router.get("/questions", async (req, res) => {
+    
     try {
       const query = {}; // Add any filtering criteria here if needed
       const result = await Quiz.find(query, {id:1,title: 1, _id: 1,questions: 1 })    
