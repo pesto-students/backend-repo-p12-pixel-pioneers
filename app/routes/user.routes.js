@@ -225,7 +225,7 @@ module.exports = app => {
   // });
   
   // Change password
-  router.put('/change-password', async (req, res) => {
+  router.post('/change-password', async (req, res) => {
     const { oldPassword, newPassword } = req.body;
   
     const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
@@ -326,7 +326,7 @@ module.exports = app => {
   // });
   // });
   
-  router.put('/update-user', async (req, res) => {
+  router.post('/update-user', async (req, res) => {
     const {newFields} = req.body;
     const token = req.headers.authorization.split(' ')[1]; // Extract JWT token from Authorization header
   
