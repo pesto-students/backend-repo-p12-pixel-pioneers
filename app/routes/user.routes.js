@@ -7,7 +7,7 @@ module.exports = app => {
   //const emailValidator = require('email-deep-validator');
   const crypto = require('crypto');
   const nodemailer = require('nodemailer');
-  const ForgotPassword = require('../models/forgotPassword.model'); 
+  //const ForgotPassword = require('../models/forgotPassword.model'); 
   //import emailValidator from "deep-email-validator";
   
   
