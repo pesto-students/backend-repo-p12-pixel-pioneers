@@ -7,7 +7,7 @@ module.exports = app => {
   //const emailValidator = require('email-deep-validator');
   const crypto = require('crypto');
   const nodemailer = require('nodemailer');
-  //const ForgotPassword = require('../models/forgotPassword.model'); 
+  const ForgotPassword = require('../models/forgotPassword.model'); 
   //import emailValidator from "deep-email-validator";
   
   
@@ -45,7 +45,24 @@ module.exports = app => {
       const newUser = new User({ email, password });
       await newUser.save();
   
-      res.status(201).json({ message: 'User registered successfully' });
+      const token = jwt.sign({ userId: newUser._id }, 'secret_key', { expiresIn: '1m' });
+      //await Session.create({ email, accessToken: token });
+  
+      // Additional user details to include in the response
+      const userDetails = {
+        _id: newUser._id,
+        email: newUser.email,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+        };
+  
+      res.json({
+        msg: 'User registered successfully!',
+        token,
+        newUser: userDetails
+      });
+  
+      //res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
       console.error(error); // Log the error for debugging purposes
       res.status(500).json({ message: 'An error occurred during registration' });
@@ -102,11 +119,10 @@ module.exports = app => {
   
       // Additional user details to include in the response
       const userDetails = {
-        id: user._id,
+        _id: user._id,
         email: user.email,
         role: user.role,
         phone: user.phone,
-        password: user.password,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         last_login: user.last_login
