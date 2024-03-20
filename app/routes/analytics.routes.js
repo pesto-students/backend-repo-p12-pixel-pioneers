@@ -132,6 +132,66 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
 
 // Route to get total answer statistics for a specific quiz
 // Route to fetch statistics for quiz answers
+// router.get('/quiz/:quizId/answer-stats', async (req, res) => {
+//   try {
+//     const { quizId } = req.params;
+//     const quiz = await Quiz.findById(quizId);
+
+//     if (!quiz) {
+//       return res.status(404).json({ message: 'Quiz not found' });
+//     }
+
+//     let totalCorrectAnswers = 0;
+//     let totalWrongAnswers = 0;
+//     let totalAnswers = 0;
+//     const userStatistics = [];
+
+//     // Iterate through each user answer
+//     quiz.user_answers.forEach(userAnswer => {
+//       let correctAnswers = 0;
+//       let wrongAnswers = 0;
+
+//       // Iterate through each question in the quiz
+//       quiz.questions.forEach((question, index) => {
+//         const userOption = userAnswer.answers[index];
+//         const correctOptionIndex = question.correct_answer;
+
+//         if (userOption === correctOptionIndex) {
+//           correctAnswers++;
+//         } else {
+//           wrongAnswers++;
+//         }
+//       });
+
+//       totalCorrectAnswers += correctAnswers;
+//       totalWrongAnswers += wrongAnswers;
+//       totalAnswers += userAnswer.answers.length;
+
+//       userStatistics.push({
+//         key: userAnswer.user.email,
+//         question_type:quiz.questions[0].question_type,
+//         correctAnswers,
+//         wrongAnswers
+//       });
+//     });
+
+//     const percentage = {
+//       totalCorrectAnswers,
+//       totalWrongAnswers,
+//       totalAnswers
+//     };
+
+//     res.json({
+//       result: userStatistics,
+//       percentage
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
+
+// Route to fetch statistics for quiz answers
 router.get('/quiz/:quizId/answer-stats', async (req, res) => {
   try {
     const { quizId } = req.params;
@@ -146,6 +206,11 @@ router.get('/quiz/:quizId/answer-stats', async (req, res) => {
     let totalAnswers = 0;
     const userStatistics = [];
 
+    if (quiz.questions[0].question_type === 'Poll') {
+    const analytics = analyzeQuizResponses(quiz);
+    res.json(analytics);
+    }
+    else{
     // Iterate through each user answer
     quiz.user_answers.forEach(userAnswer => {
       let correctAnswers = 0;
@@ -185,11 +250,35 @@ router.get('/quiz/:quizId/answer-stats', async (req, res) => {
       result: userStatistics,
       percentage
     });
+  }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
+  
 });
+
+
+// Function to analyze quiz responses
+function analyzeQuizResponses(quiz) {
+  const totalResponses = quiz.user_answers.length;
+  const optionCounts = Array.from({ length: quiz.questions[0].options.length }, () => 0);
+
+  quiz.user_answers.forEach(userAnswer => {
+    userAnswer.answers.forEach(answer => {
+      optionCounts[answer]++;
+    });
+  });
+
+  const optionPercentages = optionCounts.map(count => ((count / totalResponses) * 100).toFixed(2));
+
+  return {
+    totalResponses,
+    optionCounts,
+    optionPercentages
+  };
+}
+
 module.exports = router;
 app.use("/api/analytics", router);
 }
