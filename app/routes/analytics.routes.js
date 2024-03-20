@@ -291,14 +291,12 @@ function analyzeQuizResponses(quiz) {
     questionAnalytics.push({
       questionTitle: question.question_title,
       totalResponses,
-      optionCounts: optionCountsArray,
-      optionPercentages
+      optionCounts: optionCountsArray      
     });
   });
 
-  return questionAnalytics;
+  return { question_type: 'Poll', analytics: questionAnalytics };
 }
-
 module.exports = router;
 app.use("/api/analytics", router);
 }
