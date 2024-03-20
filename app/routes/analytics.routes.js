@@ -169,6 +169,7 @@ router.get('/quiz/:quizId/answer-stats', async (req, res) => {
 
       userStatistics.push({
         key: userAnswer.user.email,
+        question_type:quiz.questions[0].question_type,
         correctAnswers,
         wrongAnswers
       });
