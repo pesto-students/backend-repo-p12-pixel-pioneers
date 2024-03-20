@@ -167,7 +167,7 @@ router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
         });
       });
   
-      res.json({ userAnswerDetails });
+      res.json(userAnswerDetails);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal server error' });
