@@ -262,21 +262,41 @@ router.get('/quiz/:quizId/answer-stats', async (req, res) => {
 // Function to analyze quiz responses
 function analyzeQuizResponses(quiz) {
   const totalResponses = quiz.user_answers.length;
-  const optionCounts = Array.from({ length: quiz.questions[0].options.length }, () => 0);
+  const questionAnalytics = [];
 
-  quiz.user_answers.forEach(userAnswer => {
-    userAnswer.answers.forEach(answer => {
-      optionCounts[answer]++;
+  quiz.questions.forEach((question, index) => {
+    const optionCounts = {};
+    
+    // Initialize optionCounts with 0 for each option
+    question.options.forEach(option => {
+      optionCounts[option] = 0;
+    });
+
+    quiz.user_answers.forEach(userAnswer => {
+      const userResponse = userAnswer.answers[index];
+      if (userResponse !== undefined) {
+        const selectedOption = question.options[userResponse];
+        optionCounts[selectedOption]++;
+      }
+    });
+
+    // Convert optionCounts to array of objects with option and count
+    const optionCountsArray = Object.entries(optionCounts).map(([option, count]) => ({
+      option,
+      count
+    }));
+
+    const optionPercentages = optionCountsArray.map(({ count }) => ((count / totalResponses) * 100).toFixed(2));
+
+    questionAnalytics.push({
+      questionTitle: question.question_title,
+      totalResponses,
+      optionCounts: optionCountsArray,
+      optionPercentages
     });
   });
 
-  const optionPercentages = optionCounts.map(count => ((count / totalResponses) * 100).toFixed(2));
-
-  return {
-    totalResponses,
-    optionCounts,
-    optionPercentages
-  };
+  return questionAnalytics;
 }
 
 module.exports = router;
