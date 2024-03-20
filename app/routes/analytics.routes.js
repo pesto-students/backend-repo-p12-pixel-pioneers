@@ -74,61 +74,107 @@ router.get('/answer-frequency-by-username', async (req, res) => {
 }); 
 
 // Route to get user answer details for a specific quiz and user email
+// router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
+//   const quizId = req.params.quizId;
+//   const userEmail = req.params.userEmail;
+//   const userAnswerDetails = [];
+//     //  const answerFrequencyByUsername = {};
+
+//   try {
+//     const quizData = await Quiz.findOne({ id: quizId });
+
+//     if (!quizData) {
+//       return res.status(404).json({ message: 'Quiz not found' });
+//     }
+
+//     //getUserAnswerDetails(quizData, userEmail);
+//     try {       
+
+//       // Find the user's answers
+//       const userAnswers = quizData.user_answers.find(userAnswer => userAnswer.user.email === userEmail);
+
+//       if (!userAnswers) {
+//           console.log(`User '${userEmail}' not found.`);
+//           return;
+//       }
+//       // Iterate through the user's answers
+//       userAnswers.answers.forEach((answerIndex, questionIndex) => {
+//           if (answerIndex >= 0 && answerIndex < quizData.questions.length) {
+//               const question = quizData.questions[questionIndex];
+//               const option = question.options[answerIndex];
+//               const correctAnswerIndex = question.correct_answer;
+//               const correctAnswer = question.options[correctAnswerIndex];
+
+//               // Determine if the answer is correct
+//               const isCorrect = answerIndex === correctAnswerIndex;
+
+//               // Add answer details to the result array
+//               userAnswerDetails.push({
+//                   question: question.question_title,
+//                   userAnswer: option,
+//                   correctAnswer: correctAnswer,
+//                   isCorrect: isCorrect
+//               });
+//           }
+//       });
+
+//       console.log(`User '${userEmail}' Answer Details:`, userAnswerDetails);
+//   } catch (error) {
+//       console.error('Error:', error.message);
+//   }
+
+//    return  res.json(userAnswerDetails);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Internal Server Error' });
+//   }
+// });
+
+// Route to get user answer details for a specific quiz and user email
 router.get('/quiz/:quizId/user/:userEmail/answer-details', async (req, res) => {
   const quizId = req.params.quizId;
   const userEmail = req.params.userEmail;
   const userAnswerDetails = [];
     //  const answerFrequencyByUsername = {};
 
-  try {
-    const quizData = await Quiz.findOne({ id: quizId });
-
-    if (!quizData) {
-      return res.status(404).json({ message: 'Quiz not found' });
-    }
-
-    //getUserAnswerDetails(quizData, userEmail);
-    try {       
-
-      // Find the user's answers
-      const userAnswers = quizData.user_answers.find(userAnswer => userAnswer.user.email === userEmail);
-
-      if (!userAnswers) {
-          console.log(`User '${userEmail}' not found.`);
-          return;
+    try {
+      const { quizId, emailId } = req.params;
+      const quiz = await Quiz.findById(quizId);
+  
+      if (!quiz) {
+        return res.status(404).json({ message: 'Quiz not found' });
       }
-      // Iterate through the user's answers
-      userAnswers.answers.forEach((answerIndex, questionIndex) => {
-          if (answerIndex >= 0 && answerIndex < quizData.questions.length) {
-              const question = quizData.questions[questionIndex];
-              const option = question.options[answerIndex];
-              const correctAnswerIndex = question.correct_answer;
-              const correctAnswer = question.options[correctAnswerIndex];
-
-              // Determine if the answer is correct
-              const isCorrect = answerIndex === correctAnswerIndex;
-
-              // Add answer details to the result array
-              userAnswerDetails.push({
-                  question: question.question_title,
-                  userAnswer: option,
-                  correctAnswer: correctAnswer,
-                  isCorrect: isCorrect
-              });
-          }
+  
+      console.log(quiz);
+      const userAnswers = quiz.user_answers.find(userAnswer => userAnswer.user.email === userEmail);
+  
+      if (!userAnswers) {
+        return res.status(404).json({ message: 'User answers not found for the provided email ID' });
+      }
+  
+      const userAnswerDetails = [];
+      quiz.questions.forEach((question, index) => {
+        const userAnswer = userAnswers.answers[index];
+        const correctAnswer = question.correct_answer;
+        const isCorrect = userAnswer === correctAnswer;
+        const option = question.options[userAnswer];
+  
+        userAnswerDetails.push({
+          question: question.question_title,
+          userAnswer: option,
+          correctAnswer: question.options[correctAnswer],
+          isCorrect
+        });
       });
+  
+      res.json({ userAnswerDetails });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
 
-      console.log(`User '${userEmail}' Answer Details:`, userAnswerDetails);
-  } catch (error) {
-      console.error('Error:', error.message);
-  }
 
-   return  res.json(userAnswerDetails);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
 
 // Route to get total answer statistics for a specific quiz
 // Route to fetch statistics for quiz answers
